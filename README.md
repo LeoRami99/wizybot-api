@@ -36,6 +36,8 @@ OPEN_WEATHER_API_KEY=xxxxxxxxxxxxxxxxxxxxxxx
 RAPID_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxx
 FREE_CURRENCY_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
+```
+
 
 ## Project setup
 
