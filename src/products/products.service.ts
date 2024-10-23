@@ -23,6 +23,24 @@ interface Product {
 export class ProductsService {
     constructor(private configService: ConfigService) { }
 
+    /**
+     * Generates a response based on the provided AI prompt using OpenAI's API.
+     * 
+     * @param prompt - The input prompt string to be processed by the AI.
+     * @returns An object containing the response from the AI or an error message.
+     * 
+     * @throws Will throw an error if the prompt validation fails.
+     * 
+     * The function performs the following steps:
+     * 1. Validates the input prompt using a predefined schema.
+     * 2. Initializes the OpenAI client with the API key from the configuration service.
+     * 3. Creates the initial message array based on the input prompt.
+     * 4. Sends the initial prompt to the OpenAI API and processes the response.
+     * 5. If the response includes tool calls, it handles specific functions like `searchProduct` and `convertCurrencies`.
+     * 6. For `searchProduct`, it searches for products and generates a summary, then sends a follow-up prompt to the AI.
+     * 7. For `convertCurrencies`, it converts the specified currency and sends a follow-up prompt to the AI.
+     * 8. Returns the final response from the AI or an error message if any step fails.
+     */
     async aiPrompt(prompt: string) {
         const { error } = getPromptSchema.validate({ prompt });
         if (error) {
@@ -117,6 +135,29 @@ export class ProductsService {
             };
         }
     }
+
+    /**
+     * Searches for products in a CSV file that match the given search string.
+     * 
+     * @param _search - The search string to match against the product's display title.
+     * @returns A promise that resolves to an array of products that match the search criteria.
+     * 
+     * The products are read from a CSV file located at `data/products_list.csv`.
+     * Each product is represented by an object containing the following properties:
+     * - `displayTitle`: The title of the product.
+     * - `embeddingText`: The embedding text of the product.
+     * - `url`: The URL of the product.
+     * - `imageUrl`: The image URL of the product.
+     * - `productType`: The type of the product.
+     * - `discount`: The discount on the product.
+     * - `price`: The price of the product.
+     * - `variants`: The variants of the product.
+     * - `createDate`: The creation date of the product.
+     * 
+     * The resulting array of products is sorted by the creation date in descending order.
+     * 
+     * @throws {InternalServerErrorException} If there is an error processing the CSV file.
+     */
     async searchProduct(_search: string): Promise<Product[]> {
         const products: Product[] = [];
         return new Promise((resolve, reject) => {
@@ -150,6 +191,15 @@ export class ProductsService {
         });
     }
 
+    /**
+     * Converts a value from one currency to another using the Free Currency API.
+     *
+     * @param baseCurrency - The currency code of the base currency (e.g., 'USD').
+     * @param currency - The currency code to which the value should be converted (e.g., 'EUR').
+     * @param value - The amount of money to be converted.
+     * @returns An object containing the target currency, the original value, and the converted value.
+     * @throws {InternalServerErrorException} If there is an error fetching or processing the currency data.
+     */
     async convertCurrencies(baseCurrency: string, currency: string, value: number) {
         try {
             const response = await fetch(`https://api.freecurrencyapi.com/v1/latest?apikey=${process.env.FREE_CURRENCY_API_KEY}&currencies=${currency}&base_currency=${baseCurrency}`);
@@ -177,6 +227,12 @@ export class ProductsService {
         }
     }
 
+    /**
+     * Creates a message array for chat completion.
+     * 
+     * @param prompt - The user input to be included in the message.
+     * @returns An array of chat completion message parameters.
+     */
     createMessage(prompt: string): ChatCompletionMessageParam[] {
         return [
             {
@@ -191,6 +247,23 @@ export class ProductsService {
     }
 
 
+    /**
+     * Provides a set of tools for various functionalities.
+     * 
+     * @returns {ChatCompletionTool[]} An array of tools with their respective functions and parameters.
+     * 
+     * The available tools are:
+     * 
+     * - `convertCurrencies`: Converts a value from one currency to another.
+     *   - Parameters:
+     *     - `baseCurrency` (string): The currency to convert from.
+     *     - `currency` (string): The currency to convert to.
+     *     - `value` (number): The value to convert.
+     * 
+     * - `searchProduct`: Searches for a product by name.
+     *   - Parameters:
+     *     - `search` (string): The name of the product to search for.
+     */
     tools() {
         const tools: ChatCompletionTool[] = [
             {

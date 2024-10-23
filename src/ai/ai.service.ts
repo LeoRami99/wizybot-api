@@ -10,6 +10,22 @@ import { ChatCompletionMessageParam, ChatCompletionTool } from 'openai/resources
 export class AiService {
     constructor(private configService: ConfigService) { }
 
+    /**
+     * Generates a response based on the provided prompt using OpenAI's GPT-4 model.
+     * 
+     * @param {string} prompt - The input prompt to generate a response for.
+     * @returns {Promise<{ ok: boolean, response?: string, error?: string }>} - An object containing the response or an error message.
+     * 
+     * @throws {Error} - Throws an error if the prompt validation fails.
+     * 
+     * The function performs the following steps:
+     * 1. Validates the input prompt using a predefined schema.
+     * 2. Creates an initial message array based on the prompt.
+     * 3. Sends the initial message to OpenAI's chat completion API.
+     * 4. If the response includes tool calls, it processes the tool calls and fetches additional data (e.g., weather and population).
+     * 5. Sends an updated message array to OpenAI's chat completion API for a refined response.
+     * 6. Returns the final response or an error message if any step fails.
+     */
     async getPrompt(prompt: string) {
         const openai = new OpenAI({ apiKey: this.configService.get('OPEN_AI_API_KEY') });
 
@@ -59,6 +75,12 @@ export class AiService {
         }
     }
 
+    /**
+     * Generates an array of chat completion message parameters based on the provided prompt.
+     *
+     * @param prompt - The user's input prompt to be included in the chat messages.
+     * @returns An array of `ChatCompletionMessageParam` objects, including a system message and the user's prompt.
+     */
     createMessage(prompt: string): ChatCompletionMessageParam[] {
         return [
             {
@@ -72,6 +94,14 @@ export class AiService {
         ]
     }
 
+    /**
+     * Creates an array of chat completion messages using the provided tool name, weather information, and population data.
+     *
+     * @param toolName - The name of the tool to be used in the messages.
+     * @param weather - An object containing weather information, including city, description, temperature, humidity, and wind speed.
+     * @param population - An object containing population information, including city and population count.
+     * @returns An array of chat completion messages formatted with the provided tool name, weather, and population data.
+     */
     createMessageWithTool(toolName: string, weather: weatherTypes, population: populationTypes): ChatCompletionMessageParam[] {
         return [
             {
@@ -87,6 +117,20 @@ export class AiService {
     }
 
 
+    /**
+     * Generates an array of tools for AI chat completions.
+     * 
+     * @returns {ChatCompletionTool[]} An array of tools, each containing a function with its name, description, and parameters.
+     * 
+     * The available tools are:
+     * - `getWeather`: Retrieves the weather information for a specified city.
+     *   - Parameters:
+     *     - `city` (string, required): The name of the city to get the weather for.
+     *     - `unit` (string, optional): The unit of the temperature, either "metric" or "imperial".
+     * - `getPopulation`: Retrieves the population information for a specified city.
+     *   - Parameters:
+     *     - `city` (string, required): The name of the city to get the population for.
+     */
     toolsAi() {
         const tools: ChatCompletionTool[] = [
             {
@@ -136,6 +180,22 @@ export class AiService {
         return tools;
     }
 
+    /**
+     * Fetches the weather information for a given city using the OpenWeatherMap API.
+     * 
+     * @param city - The name of the city to fetch the weather for.
+     * @returns A promise that resolves to an object containing weather information:
+     * - `ok`: A boolean indicating if the request was successful.
+     * - `city`: The name of the city.
+     * - `temperature`: The current temperature in Celsius.
+     * - `description`: A brief description of the weather.
+     * - `humidity`: The humidity percentage.
+     * - `windSpeed`: The wind speed in meters per second.
+     * 
+     * If an error occurs, the promise resolves to an object containing:
+     * - `ok`: A boolean indicating the request was not successful.
+     * - `error`: A string describing the error.
+     */
     async getWeather(city: string) {
         try {
             const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${this.configService.get('OPEN_WEATHER_API_KEY')}&units=metric`);
@@ -159,6 +219,15 @@ export class AiService {
     }
 
 
+    /**
+     * Fetches the population and weather data for a given city.
+     * 
+     * @param city - The name of the city to fetch data for.
+     * @returns An object containing the city's population, weather description, temperature, humidity, and wind speed.
+     *          If an error occurs, returns an object with an error message.
+     * 
+     * @throws Will throw an error if the response from the API is not ok.
+     */
     async getPopulation(city: string) {
         try {
             const response = await fetch(`https://place-population-finder-api.p.rapidapi.com/${city}`, {
