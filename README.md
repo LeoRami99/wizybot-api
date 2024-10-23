@@ -56,11 +56,6 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-```
-
-
-```
-
 ## Social Media
 
 Connect with me on the following platforms:
