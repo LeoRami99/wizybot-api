@@ -26,6 +26,19 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+
+
+## Node.js Version
+
+This project requires **Node.js version 20** or higher to run. Make sure you have the correct version installed before starting the project.
+
+You can check your Node.js version with the following command:
+
+```bash
+node -v
+
+```
+
 ## Environment Variables
 
 The following environment variables are required for proper functioning of the application:
