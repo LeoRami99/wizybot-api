@@ -56,7 +56,15 @@ $ npm run start:dev
 
 # production mode
 $ npm run start:prod
+
 ```
+
+## API Documentation
+
+The API documentation will be available once the project is running. You can access it at the following link:
+
+- [API Documentation](http://localhost:3000/api/) (Available after the project is started)
+
 
 ## Social Media
 
